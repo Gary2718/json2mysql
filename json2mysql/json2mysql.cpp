@@ -30,10 +30,25 @@ int _tmain(int argc, _TCHAR* argv[])
     char readBuffer[102400];
 
 //    assert(!fp);
-
+	static const char* kTypeNames[] =
+	{ "Null", "False", "True", "Object", "Array", "String", "Number" };
     FileReadStream fis(fp, readBuffer, sizeof(readBuffer) );
     Document d;
-    //d.ParseStream(fis);
+    d.ParseStream(fis);
+	std::cout <<d.GetString() << "  ---  " << kTypeNames[d.GetType()] << std::endl;
+	d.GetArray
+	auto itr = d.MemberBegin();
+	std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
+	if (itr->value.IsArray())
+	{
+		std::cout << itr->value.Size() << std::endl;
+		for (auto&v : itr->value.GetArray())
+		{
+			std::cout << kTypeNames[v.GetType()] << std::endl;
+		}
+	}
+	char exit;
+	std::cin >> exit;
     return 0;
 }
 
