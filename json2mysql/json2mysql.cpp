@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <iostream>
 
+static const char* kTypeNames[] =
+{ "Null", "False", "True", "Object", "Array", "String", "Number" };
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -15,40 +17,62 @@ int _tmain(int argc, _TCHAR* argv[])
 
     FILE* fp;
 
-    auto status = fopen_s(&fp, "./property_id_to_entry.json", "rb");
+    auto status = fopen_s(&fp, "./block_entry.json", "rb");
 
-    if (fp)
+    if (status==0)
     {
-        std::cout << "property_id_to_entry.json  opened" << std::endl;
+        std::cout << "block_entry.json  opened successfully!" << std::endl;
     }
     else
     {
-        std::cout << "file not opened" << std::endl;
+        std::cout << "open failed" << std::endl;
     }
     std::cout << status << std::endl;
 
-    char readBuffer[102400];
 
-//    assert(!fp);
-	static const char* kTypeNames[] =
-	{ "Null", "False", "True", "Object", "Array", "String", "Number" };
-    FileReadStream fis(fp, readBuffer, sizeof(readBuffer) );
-    Document d;
-    d.ParseStream(fis);
-	std::cout <<d.GetString() << "  ---  " << kTypeNames[d.GetType()] << std::endl;
-	d.GetArray
-	auto itr = d.MemberBegin();
-	std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
-	if (itr->value.IsArray())
-	{
-		std::cout << itr->value.Size() << std::endl;
-		for (auto&v : itr->value.GetArray())
-		{
-			std::cout << kTypeNames[v.GetType()] << std::endl;
-		}
-	}
-	char exit;
-	std::cin >> exit;
+    Document document;
+    char readBuffer[102400];
+    document.ParseStream(FileReadStream(fp, readBuffer, sizeof(readBuffer)));
+
+
+    std::cout << "document type: " << kTypeNames[document.GetType()] << "\t size: " << document.Size() << std::endl;
+    if (document.IsArray())
+    {
+        std::cout << "document type: " << kTypeNames[document.GetType()] << "\t size: " << document.Size() << std::endl;
+        for (auto& rec_v : document.GetArray())
+        {
+            std::cout << "record type: " << kTypeNames[rec_v.GetType()] << "\t size: " << rec_v.Size() << std::endl;
+            if (rec_v.IsArray())
+            {
+
+                //auto& v_v = rec_v.End();
+                //rec_v.End()->GetType();
+
+                std::cout << "v_v type : " << kTypeNames[rec_v.End()->GetType()] << "\t size: " << rec_v.End()->Size() << std::endl;
+
+                //for (auto& kv_v : rec_v.GetArray()) 
+                //{
+                //    std::cout << "kv_v type : " << kTypeNames[kv_v.GetType()] << "\t size: " << kv_v.Size() << std::endl;
+                //}
+
+            }
+        }
+
+    }
+
+
+    auto itr = document.MemberBegin();
+    std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
+    if (itr->value.IsArray())
+    {
+        std::cout << itr->value.Size() << std::endl;
+        for (auto&v : itr->value.GetArray())
+        {
+            std::cout << kTypeNames[v.GetType()] << std::endl;
+        }
+    }
+    char exit;
+    std::cin >> exit;
     return 0;
 }
 
