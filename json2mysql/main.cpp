@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/document.h"
+#include "block_entry.h"
 #include <cstdio>
 #include <assert.h>
 #include <iostream>
@@ -36,7 +37,6 @@ int _tmain(int argc, _TCHAR* argv[])
     Document d;
     d.ParseStream(fis);
 	std::cout <<d.GetString() << "  ---  " << kTypeNames[d.GetType()] << std::endl;
-	d.GetArray
 	auto itr = d.MemberBegin();
 	std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
 	if (itr->value.IsArray())
@@ -47,6 +47,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			std::cout << kTypeNames[v.GetType()] << std::endl;
 		}
 	}
+	Connect_To_Mysql();
 	char exit;
 	std::cin >> exit;
     return 0;
