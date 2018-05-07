@@ -39,40 +39,48 @@ int _tmain(int argc, _TCHAR* argv[])
     std::cout << "document type: " << kTypeNames[document.GetType()] << "\t size: " << document.Size() << std::endl;
     if (document.IsArray())
     {
-        std::cout << "document type: " << kTypeNames[document.GetType()] << "\t size: " << document.Size() << std::endl;
         for (auto& rec_v : document.GetArray())
         {
             std::cout << "record type: " << kTypeNames[rec_v.GetType()] << "\t size: " << rec_v.Size() << std::endl;
             if (rec_v.IsArray())
             {
-
-                //auto& v_v = rec_v.End();
-                //rec_v.End()->GetType();
-
-                std::cout << "v_v type : " << kTypeNames[rec_v.End()->GetType()] << "\t size: " << rec_v.End()->Size() << std::endl;
-
-                //for (auto& kv_v : rec_v.GetArray()) 
-                //{
-                //    std::cout << "kv_v type : " << kTypeNames[kv_v.GetType()] << "\t size: " << kv_v.Size() << std::endl;
-                //}
+                for (auto& kv_v : rec_v.GetArray()) 
+                {
+                    //std::cout << "kv_v type : " << kTypeNames[kv_v.GetType()] << "\t size: " << kv_v.Size() << std::endl;
+                    if (kv_v.IsString())
+                    {
+                        std::cout << "block_id :" << kv_v.GetString() << "\t";
+                    }
+                    else if(kv_v.IsObject())
+                    {
+                        if (kv_v.HasMember("block_num"))
+                        {
+                            std::cout << "block_num:" << kv_v["block_num"].GetInt64() << std::endl;
+                        }
+                        if (kv_v.HasMember("user_transaction_ids"))
+                        {
+                            std::cout << "num_trx :" << kv_v["user_transaction_ids"].Size() << std::endl;
+                        }
+                    }
+                }
 
             }
         }
 
     }
 
+    //Connect_To_Mysql();
 
-    auto itr = document.MemberBegin();
-    std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
-    if (itr->value.IsArray())
-    {
-        std::cout << itr->value.Size() << std::endl;
-        for (auto&v : itr->value.GetArray())
-        {
-            std::cout << kTypeNames[v.GetType()] << std::endl;
-        }
-    }
-    Connect_To_Mysql();
+    //auto itr = document.MemberBegin();
+    //std::cout << itr->name.GetString() << "  ---  " << kTypeNames[itr->value.GetType()] << std::endl;
+    //if (itr->value.IsArray())
+    //{
+    //    std::cout << itr->value.Size() << std::endl;
+    //    for (auto&v : itr->value.GetArray())
+    //    {
+    //        std::cout << kTypeNames[v.GetType()] << std::endl;
+    //    }
+    //}
 
     char exit;
     std::cin >> exit;

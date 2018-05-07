@@ -13,78 +13,90 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\rapidjson">
+      <UniqueIdentifier>{f308bafc-26a3-405d-9682-ab45f348855d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="block_entry.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\allocators.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\cursorstreamwrapper.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\document.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\encodedstream.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\encodings.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\filereadstream.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\filewritestream.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\fwd.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\istreamwrapper.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\memorybuffer.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\memorystream.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\ostreamwrapper.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\pointer.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\prettywriter.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\rapidjson.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\reader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapidjson\schema.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapidjson\stream.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapidjson\stringbuffer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapidjson\writer.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\rapidjson</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapidjson\schema.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapidjson\stream.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapidjson\stringbuffer.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapidjson\writer.h">
+      <Filter>头文件\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="Jsonhand.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MysqlHand.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -92,7 +104,13 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="json2mysql.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Jsonhand.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MysqlHand.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
