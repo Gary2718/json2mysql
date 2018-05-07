@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/document.h"
+#include "block_entry.h"
 #include <cstdio>
 #include <assert.h>
 #include <iostream>
@@ -71,6 +72,8 @@ int _tmain(int argc, _TCHAR* argv[])
             std::cout << kTypeNames[v.GetType()] << std::endl;
         }
     }
+    Connect_To_Mysql();
+
     char exit;
     std::cin >> exit;
     return 0;
