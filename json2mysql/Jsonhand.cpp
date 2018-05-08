@@ -1,13 +1,15 @@
 #include "stdafx.h"
 #include "Jsonhand.h"
-#include "block_entry.h"
+#include "MysqlHand.h"
 
 using namespace rapidjson;
 
 static const char* kTypeNames[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
 
-JsonHand::JsonHand()
+JsonHand::JsonHand(std::string jsonfile, std::shared_ptr<MysqlHand> mysql_sptr)
 {
+    json_file_path = jsonfile;
+    mysqlhand_sptr = mysql_sptr;
 }
 
 JsonHand::~JsonHand()
@@ -38,6 +40,7 @@ bool JsonHand::LoadData()
     return true;
 
 }
+
 bool JsonHand::ParsetoRec()
 {
     if (json_document.Empty())
@@ -82,6 +85,11 @@ bool JsonHand::ParsetoRec()
     return true;
 }
 
+std::string  JsonHand::GetFileName()
+{
+    return json_file_path.filename();
+}
+
 bool JsonHand::ParseBlockEntry( KV_REC& kv_rec )
 {
     Block_Entry block_entry;
@@ -100,12 +108,10 @@ bool JsonHand::ParseBlockEntry( KV_REC& kv_rec )
             block_entry.num_trxs = kv_v["user_transaction_ids"].Size();
             block_entry.block_size = kv_v["block_size"].GetUint64();
             block_entry.processing_time = kv_v["processing_time"].GetUint64();
-            //block_entry.sync_timestamp = kv_v["user_transaction_ids"].Size();
-            //block_entry.ins_mysql_timestamp = kv_v[""].Size();
+            block_entry.latencey = kv_v["latency"].GetUint64()/1000000;  //microseconds to seconds
         }
     }
 
     block_entry.Display();
-
-    return true;
+    return mysqlhand_sptr->Insert_To_Block_Entry( block_entry );
 }
