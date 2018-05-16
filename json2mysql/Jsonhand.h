@@ -7,6 +7,7 @@
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/document.h"
 
+#include "stdint.h"
 #include "mysql.h"
 #include "MysqlHand.h"
 
@@ -20,20 +21,25 @@ using namespace std::tr2::sys;
 class JsonHand
 {
 public:
-    JsonHand( std::string jsonfile, std::shared_ptr<MysqlHand> mysql_sptr);
+    JsonHand(std::string jsonfile );
     ~JsonHand();
-    bool LoadData();
-    bool ParsetoRec();
-    std::string  GetFileName();
+    bool          load_data();
+    bool          write_to_mysql();
 
-    
-    
-    bool ParseBlockEntry(KV_REC& kv_rec);
-    void ParseTransactionEntry(rapidjson::Value kv_rec);
+    uint64_t     get_json_size();
+    std::string  get_file_name();
+
+    std::string insert_sqlstr_beginning();
+    std::string insert_sqlstr_ending();
+    bool json_rec2insert_value(KV_REC& kv_rec, std::string& sql_str);
+
+
+
+    bool parse_block_entry_values(KV_REC& kv_rec, std::string& sqlstr);
+    bool parse_transaction_entry_values(KV_REC& kv_rec, std::string& sql_str);
 
 
 private:
-    std::shared_ptr<MysqlHand> mysqlhand_sptr;
     path                     json_file_path;
     rapidjson::Document      json_document;
 

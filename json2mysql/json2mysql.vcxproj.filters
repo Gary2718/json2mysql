@@ -99,6 +99,12 @@
     <ClInclude Include="MysqlHand.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="trx_entry.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="const_string.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

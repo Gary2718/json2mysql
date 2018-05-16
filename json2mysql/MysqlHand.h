@@ -7,21 +7,33 @@
 #include "block_entry.h"
 
 
-class MysqlHand
+class MysqlHandSingleton
 {
-public:
-    MysqlHand();
-    ~MysqlHand();
-    bool Connect_To_Mysql();
-    void Free_Connect();
-    bool Insert_To_Block_Entry(Block_Entry& block_Entry);
-    bool Update_Block_Entry(Block_Entry& block_Entry);
-    bool Query_Block_Entry(Block_Entry& block_Entry);
-    bool Truncate_Block_Entry(Block_Entry& block_Entry);
-    long Max_Block_Num();     //if reurn 0 , means empty;
-
 private:
+    MysqlHandSingleton();
+    static MysqlHandSingleton * _instance_ptr ; //必须初始化
 
+    class Garbo//唯一的作用就是 delete ptr
+    {
+        ~Garbo();
+    };
+    static Garbo garbo;
+public:
+
+    static MysqlHandSingleton * get_instance();
+
+
+
+
+
+
+
+    ~MysqlHandSingleton();
+    bool connect_to_mysql();
+    void free_connect();
+    bool run_insert_sql(std::string&  sqlss);
+    long max_block_num();
+private:
     const std::string mysql_user = "root";             //  username
     const std::string mysql_pswd = "password";         //  password
     const std::string mysql_host = "localhost";        //  or"127.0.0.1"

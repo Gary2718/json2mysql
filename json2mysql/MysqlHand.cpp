@@ -4,21 +4,40 @@
 #include <sstream>
 
 
+MysqlHandSingleton * MysqlHandSingleton::_instance_ptr = nullptr; 
+//私有静态成员变量在使用前必须初始化
 
-MysqlHand::MysqlHand()
+MysqlHandSingleton::Garbo::~Garbo()
 {
-    if (!Connect_To_Mysql())
+    {
+        if (MysqlHandSingleton::_instance_ptr)
+            delete MysqlHandSingleton::_instance_ptr;
+    }
+} 
+
+MysqlHandSingleton::MysqlHandSingleton()
+{
+    if (!connect_to_mysql())
     {
         assert(false);
     }
 }
 
-MysqlHand::~MysqlHand()
+MysqlHandSingleton * MysqlHandSingleton::get_instance()
 {
-    Free_Connect();
+    if (!_instance_ptr)
+        _instance_ptr = new MysqlHandSingleton();
+    return _instance_ptr;
+
 }
 
-bool MysqlHand::Connect_To_Mysql()
+
+MysqlHandSingleton::~MysqlHandSingleton()
+{
+    free_connect();
+}
+
+bool MysqlHandSingleton::connect_to_mysql()
 {
     mysql_init(&myConnect);
     if (mysql_real_connect(&myConnect, mysql_host.c_str(), mysql_user.c_str(), mysql_pswd.c_str(),
@@ -40,7 +59,7 @@ bool MysqlHand::Connect_To_Mysql()
     return true;
 }
 
-void MysqlHand::Free_Connect()
+void MysqlHandSingleton::free_connect()
 {
     if (result)
     {
@@ -52,42 +71,19 @@ void MysqlHand::Free_Connect()
     }
 }
 
-bool MysqlHand::Insert_To_Block_Entry( Block_Entry& block_Entry )
+bool MysqlHandSingleton::run_insert_sql(std::string&  sql_str)
 {
-    std::string insertSqlStr;
-    insertSqlStr += "INSERT INTO block_entry ( block_num, block_id, pre_block_id, block_timestamp, block_delegate, num_trxs, block_size, processing_time, sync_timestamp, ins_mysql_timestamp ) ";
-    insertSqlStr += "VALUES ( ";
-    insertSqlStr += block_Entry.block_num;
+    
 
-
-    //insertSqlStr += "'";
-    //insertSqlStr += block_Entry.block_id;
-    //insertSqlStr += "'";
-    //insertSqlStr += ",";
-    insertSqlStr += ",'";
-    insertSqlStr += block_Entry.block_id + "','";
-    insertSqlStr += block_Entry.pre_block_id + "',";
-    insertSqlStr += "STR_TO_DATE('" +  block_Entry.block_timestamp + "','%Y-%m-%d T %H:%i:%s'),'";
-
-    insertSqlStr += block_Entry.block_delegate + "',";
-    insertSqlStr += block_Entry.num_trxs + ",";
-    insertSqlStr += block_Entry.block_size + ",";
-    insertSqlStr += block_Entry.processing_time + ",";
-
-    insertSqlStr += "TIMESTAMPADD(SECOND," + block_Entry.latencey;
-    insertSqlStr += ",STR_TO_DATE('" + block_Entry.block_timestamp + "','%Y-%m-%d T %H:%i:%s')),";
-    insertSqlStr += "now();";
-
-    std::cout << insertSqlStr << std::endl;
-
-    if ( mysql_query( &myConnect, insertSqlStr.c_str() ) )
+    //std::cout << sql_str << std::endl;
+    if (mysql_query(&myConnect, sql_str.c_str()))
     {
         std::cout << "Insert into block_entry failed, " << mysql_error(&myConnect) << std::endl;
-        std::cout << "The sqlstr :  " << insertSqlStr << std::endl;
-
-
+        if (sql_str.size() < 1000)
+        {
+            std::cout << "The sqlstr :  " << sql_str << std::endl;
+        }
         //mysql_sqlstate(&myConnect);
-
         return false;
 
     }
@@ -97,19 +93,7 @@ bool MysqlHand::Insert_To_Block_Entry( Block_Entry& block_Entry )
     }
 } 
 
-bool MysqlHand::Update_Block_Entry(Block_Entry& block_Entry)
-{
-    return true;
-}
-bool MysqlHand::Query_Block_Entry(Block_Entry& block_Entry)
-{
-    return true;
-}
-bool MysqlHand::Truncate_Block_Entry(Block_Entry& block_Entry)
-{
-    return true;
-}
-long MysqlHand::Max_Block_Num()
+long MysqlHandSingleton::max_block_num()
 {
     std::string querySqlStr;
     uint64_t maxBlockNum;
@@ -119,12 +103,8 @@ long MysqlHand::Max_Block_Num()
     {
         std::cout << "Insert into block_entry failed, " << mysql_error(&myConnect) << std::endl;
         std::cout << "The sqlstr :  " << querySqlStr << std::endl;
-
-
         //mysql_sqlstate(&myConnect);
-
         return -1;
-
     }
 
     if (!(result = mysql_store_result(&myConnect)))
@@ -136,7 +116,6 @@ long MysqlHand::Max_Block_Num()
 
     if (sql_row = mysql_fetch_row(result))
     {
-
         std::istringstream iStream;
         iStream.str(sql_row[0]);
 
