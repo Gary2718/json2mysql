@@ -290,10 +290,10 @@ bool JsonHand::parse_transaction_entry_values(KV_REC& kv_rec, std::string& sql_s
     for (auto& kv_v : kv_rec.GetArray())
     {
 
-        if ( !( kv_v.IsString() || kv_v.IsObject() ) )
+        if (!(kv_v.IsString() || kv_v.IsObject()))
         {
-            std::cout << "trx rec type : " << kTypeNames[kv_v.GetType()] 
-                <<"  is not as expected ! "<< std::endl;
+            std::cout << "trx rec type : " << kTypeNames[kv_v.GetType()]
+                << "  is not as expected ! " << std::endl;
         }
 
         if (kv_v.IsString())
@@ -333,11 +333,6 @@ bool JsonHand::parse_transaction_entry_values(KV_REC& kv_rec, std::string& sql_s
                 }
 
                 //kTypeNames[op_v["data"].GetType()] == object
-
-                //std::cout << "type    opv   opv        :     " << kTypeNames[op_v.GetType()] << std::endl;
-                //std::cout << "type    opv   type        :     " << kTypeNames[op_v["type"].GetType()] << std::endl;
-                //std::cout << "type    opv   data        :     " << kTypeNames[op_v["data"].GetType()] << std::endl;
-
             }
             trx_entry.operations.substr(0, trx_entry.operations.size() - 1);  //remove the trail comma
 
@@ -346,8 +341,8 @@ bool JsonHand::parse_transaction_entry_values(KV_REC& kv_rec, std::string& sql_s
             trx_entry.contract_arg = "";
             //auto trx_obj = kv_v["trx"]["expiration"].GetType();
         }
-
-        trx_entry.display();
+    }
+    //trx_entry.display();
 
 
     sqlss << "('";
@@ -365,7 +360,7 @@ bool JsonHand::parse_transaction_entry_values(KV_REC& kv_rec, std::string& sql_s
     sqlss << "now())";
 
     sql_str=sqlss.str();
-    std::cout << " Insert Value :  " << sql_str << std::endl;
+    //std::cout << " Insert Value :  " << sql_str << std::endl;
 
     return true;
 }
