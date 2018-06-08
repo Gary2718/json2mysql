@@ -42,6 +42,7 @@ public:
 private:
     path                     json_file_path;
     rapidjson::Document      json_document;
-
+    int                      mysql_instance_num;
+    bool                     sigleton;
 };
 

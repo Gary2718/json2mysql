@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include <sstream>
 #include <stdint.h>
+#include <future>
+#include <chrono>
+#include <ctime>
+#include <future>
 #include "Jsonhand.h"
 #include "MysqlHand.h"
 #include "trx_entry.h"
@@ -9,7 +13,10 @@
 using namespace rapidjson;
 static const char* kTypeNames[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
 
-JsonHand::JsonHand(std::string jsonfile) :json_file_path(jsonfile)
+JsonHand::JsonHand(std::string jsonfile) :
+  json_file_path(jsonfile)
+, mysql_instance_num(30)
+, sigleton(false)
 {
     std::cout << "josn file: " << json_file_path.string() << std::endl;
     std::cout << "josn file name : " << json_file_path.filename() << std::endl;
@@ -53,78 +60,89 @@ uint64_t JsonHand::get_json_size()
 
 bool JsonHand::write_to_mysql()
 {
-    
     if (json_document.Empty())
     {
         std::cout << "json document is empty !" << std::endl;
         return false;
     }
-    if (json_document.IsArray())
+
+    if (json_document.Size() < 1)
     {
-        if (json_document.Size() < 1)
-        {
-            std::cout << "document type: " << kTypeNames[json_document.GetType()] << "\t size: " << json_document.Size() << std::endl;
-            return true;
-        }
-
-        std::stringstream sqlss;
-        sqlss << insert_sqlstr_beginning();
-        uint64_t rec_cnt = 0;
-        uint64_t not_empty_rec_cnt = 0;
-        for (auto& rec_v : json_document.GetArray())
-        {
-            if ( !rec_v.IsArray() && rec_v.Size()==2 )
-            {
-
-                std::cout << "record type: " << kTypeNames[rec_v.GetType()] << "\t"
-                    << "record size: " << rec_v.Size() << ", "
-                    << " is not the type as expected" << std::endl;
-                return false;
-            }
-            std::string sql_str("");
-            if (!json_rec2insert_value(rec_v, sql_str))
-            {
-                std::cout << "ParseBlockEntry error" << std::endl;
-                return false;
-            }
-
-            rec_cnt++;
-
-            if (sql_str.size() > 1)
-            {
-                not_empty_rec_cnt++;
-                sqlss << sql_str;
-            }
-
-            if ((not_empty_rec_cnt % 5000 == 0 && sql_str.size() > 1 ) || rec_cnt >= json_document.Size())  //
-            {
-                sqlss << insert_sqlstr_ending();
-                if (!MysqlHandSingleton::get_instance()->run_insert_sql(sqlss.str()))
-                {
-                    return false;
-                }
-                //std::cout << sqlss.str() << std::endl;
-                sqlss.str("");
-                sqlss << insert_sqlstr_beginning();
-
-                std::cout << rec_cnt << "  records handled  " << std::endl;
-                std::cout << not_empty_rec_cnt << " not empty  records inserted  " << std::endl;
-                std::cout << json_document.Size() << " in total  " << std::endl << std::endl;
-
-                continue;
-            }
-            if (sql_str.size() > 1)
-            {
-                sqlss << ",";
-                //std::cout << sqlss.str() << std::endl;
-            }
-        }
-
+        std::cout << "document type: " << kTypeNames[json_document.GetType()] << "\t size: " << json_document.Size() << std::endl;
+        return true;
     }
-    else
+
+    if (!json_document.IsArray())
     {
         std::cout << "record type: " << kTypeNames[json_document.GetType()] << " is not the type as expected" << std::endl;
         return false;
+    }
+
+
+    //initialize all mysql instance
+    if (!sigleton)
+    {
+        MysqlHand::init_all_instance(mysql_instance_num);
+        std::cout << "initialize " << mysql_instance_num << " mysql instance  !" << std::endl;
+    }
+
+    auto start_time = std::chrono::system_clock::now();
+    auto s_time = std::chrono::system_clock::to_time_t(start_time);
+    std::cout << "start clock : " << std::ctime(&s_time) <<  std::endl;
+
+    uint64_t rec_cnt = 0;
+    std::stringstream sqlss;
+    sqlss << insert_sqlstr_beginning();
+
+    for (auto& rec_v : json_document.GetArray())
+    {
+        std::string sql_str("");
+        if (!json_rec2insert_value(rec_v, sql_str))
+        {
+            std::cout << "ParseBlockEntry error" << std::endl;
+            return false;
+        }
+
+        if (sql_str.size() > 1)
+        {
+            rec_cnt++;
+            sqlss << sql_str;
+        }
+
+        if (rec_cnt % 10000 == 0 || rec_cnt >= json_document.Size())
+        {
+
+            sqlss << insert_sqlstr_ending();
+            std::string tmpstr = sqlss.str();
+            if (!sigleton)
+            {
+                auto f = std::async(std::launch::async, [=]{
+                    if (!MysqlHand::get_instance(rec_cnt % mysql_instance_num)->run_insert_sql(tmpstr))
+                    {
+                        assert(false);
+                    }
+                });
+                if (rec_cnt % 1000 == 0)
+                {
+                    f.wait();
+                }
+            }
+            else
+            {
+                if (!MysqlHand::get_instance()->run_insert_sql(tmpstr))
+                {
+                    assert(false);
+                }
+            }
+
+            std::cout << rec_cnt << " records inserted" << std::endl;
+            std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+            std::cout << "elapsed time: " << elapsed_seconds.count() << "  seconds" << std::endl;
+
+            sqlss.str("");
+            sqlss << insert_sqlstr_beginning();
+        }
+        else sqlss << ",";
     }
     return true;
 }
@@ -219,6 +237,13 @@ bool JsonHand::parse_block_entry_values(KV_REC& kv_rec, std::string& sql_str)
     
     Block_Entry block_entry;
     std::stringstream sqlss;
+    if (!kv_rec.IsArray() && kv_rec.Size() == 2)
+    {
+        std::cout << "record type: " << kTypeNames[kv_rec.GetType()] << "\t"
+            << "record size: " << kv_rec.Size() << ", "
+            << " is not the type as expected" << std::endl;
+        return false;
+    }
     for (auto& kv_v : kv_rec.GetArray())
     {
         if (kv_v.IsString())
@@ -257,11 +282,11 @@ bool JsonHand::parse_block_entry_values(KV_REC& kv_rec, std::string& sql_str)
             return false;
         }
     }
-    if (block_entry.num_trxs < 1)// 
-    {
-        sql_str.clear();
-        return true;
-    }
+    //if (block_entry.num_trxs < 1)// 
+    //{
+    //    sql_str.clear();
+    //    return true;
+    //}
     sqlss << "(";
     sqlss << block_entry.block_num;
     sqlss << ",'";

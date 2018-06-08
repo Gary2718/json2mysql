@@ -2,56 +2,102 @@
 #include "MysqlHand.h"
 #include <assert.h>
 #include <sstream>
+#include <thread>
 
-
-MysqlHandSingleton * MysqlHandSingleton::_instance_ptr = nullptr; 
+std::vector<MysqlHand *> MysqlHand::_instance_ptr_vec(100, nullptr);
+MysqlHand * MysqlHand::_instance_ptr = nullptr;
 //私有静态成员变量在使用前必须初始化
 
-MysqlHandSingleton::Garbo::~Garbo()
+MysqlHand::Garbo::~Garbo()
 {
     {
-        if (MysqlHandSingleton::_instance_ptr)
-            delete MysqlHandSingleton::_instance_ptr;
+        if (MysqlHand::_instance_ptr)
+            delete MysqlHand::_instance_ptr;
+        for (auto itr : _instance_ptr_vec)
+        {
+            if (itr)
+            {
+                delete itr;
+            }
+        }
     }
 } 
 
-MysqlHandSingleton::MysqlHandSingleton()
+MysqlHand::MysqlHand() :
+mysql_user("root")
+, mysql_pswd("password")
 {
     if (!connect_to_mysql())
     {
         assert(false);
     }
 }
+MysqlHand::MysqlHand(int user_seq) :
+ mysql_pswd("password")
+{
+    std::stringstream  userss;
+    userss << "user_";
+    userss << user_seq;
+    mysql_user = userss.str();
 
-MysqlHandSingleton * MysqlHandSingleton::get_instance()
+    if (!connect_to_mysql())
+    {
+        assert(false);
+    }
+}
+
+void MysqlHand::init_all_instance(int instance_num)
+{
+    for (int i = 0; i < instance_num; i++)
+    {
+        _instance_ptr_vec[i] = new MysqlHand(i + 1);
+    }
+}
+
+MysqlHand * MysqlHand::get_instance()
 {
     if (!_instance_ptr)
-        _instance_ptr = new MysqlHandSingleton();
+        _instance_ptr = new MysqlHand();
     return _instance_ptr;
 
 }
 
+MysqlHand * MysqlHand::get_instance(int seq)
+{
+//    std::cout << "get_instance:  " << seq << std::endl;
 
-MysqlHandSingleton::~MysqlHandSingleton()
+    assert(!_instance_ptr_vec[seq]);
+    return _instance_ptr_vec[seq];
+
+}
+
+MysqlHand::~MysqlHand()
 {
     free_connect();
 }
 
-bool MysqlHandSingleton::connect_to_mysql()
+bool MysqlHand::connect_to_mysql()
 {
+    std::lock_guard<std::mutex> lock(connect_mutex);
+
     mysql_init(&myConnect);
     if (mysql_real_connect(&myConnect, mysql_host.c_str(), mysql_user.c_str(), mysql_pswd.c_str(),
         mysql_database.c_str(), mysql_port, NULL, 0))
     {
+        std::lock_guard<std::mutex> lock(connect_mutex1);
+        std::cout << " thread id:  " << std::this_thread::get_id() << std::endl;
         std::cout << " user     :  " << mysql_user << std::endl;
-        std::cout << " host     :  " << mysql_host << std::endl;
-        std::cout << " port     :  " << mysql_port << std::endl;
-        std::cout << " database :  " << mysql_database << std::endl;
+        //std::cout << " host     :  " << mysql_host << std::endl;
+        //std::cout << " port     :  " << mysql_port << std::endl;
+        //std::cout << " database :  " << mysql_database << std::endl;
         std::cout << " Database connected successfully!" << std::endl;
     }
     else
     {
+        std::lock_guard<std::mutex> lock(connect_mutex2);
         std::cout << "Database connect failure !" << mysql_error(&myConnect) << std::endl;
+        std::cout << " thread id:  " << std::this_thread::get_id() << std::endl;
+        std::cout << " user     :  " << mysql_user << std::endl;
     }
 
     //mysql_query(&myConnect, "set names gbk");
@@ -59,7 +105,7 @@ bool MysqlHandSingleton::connect_to_mysql()
     return true;
 }
 
-void MysqlHandSingleton::free_connect()
+void MysqlHand::free_connect()
 {
     if (result)
     {
@@ -71,14 +117,15 @@ void MysqlHandSingleton::free_connect()
     }
 }
 
-bool MysqlHandSingleton::run_insert_sql(std::string&  sql_str)
+bool MysqlHand::run_insert_sql(std::string  sql_str)
 {
-    
+    std::lock_guard<std::mutex> lock(insert_mutex);
+
 
     //std::cout << sql_str << std::endl;
     if (mysql_query(&myConnect, sql_str.c_str()))
     {
-        std::cout << "Insert into block_entry failed, " << mysql_error(&myConnect) << std::endl;
+        std::cout << "Insert into mysql failed, " << mysql_error(&myConnect) << std::endl;
         if (sql_str.size() < 1000)
         {
             std::cout << "The sqlstr :  " << sql_str << std::endl;
@@ -89,11 +136,12 @@ bool MysqlHandSingleton::run_insert_sql(std::string&  sql_str)
     }
     else
     {
+//        std::cout << "The insert user :  " << mysql_user << std::endl;
         return true;
     }
 } 
 
-long MysqlHandSingleton::max_block_num()
+long MysqlHand::max_block_num()
 {
     std::string querySqlStr;
     uint64_t maxBlockNum;
