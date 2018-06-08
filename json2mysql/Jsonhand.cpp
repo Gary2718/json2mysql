@@ -171,6 +171,7 @@ std::string JsonHand::insert_sqlstr_beginning()
         std::cout << "No such file : "<< get_file_name() << std::endl;
     }
 }
+
 std::string JsonHand::insert_sqlstr_ending()
 {
     //std::string sqlstr_ending(";");
@@ -205,6 +206,7 @@ std::string JsonHand::insert_sqlstr_ending()
 
     //insert into test_tbl(id, dr) values(1, '2'), (2, '3'), ...(x, 'y') on duplicate key update dr = values(dr);
 }
+
 bool JsonHand::json_rec2insert_value(KV_REC& kv_rec, std::string& sql_str)
 {
     if (get_file_name() == block_entry_file_name_const)
